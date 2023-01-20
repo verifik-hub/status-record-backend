@@ -14,12 +14,7 @@ clientApi.listServices().then(async (services) => {
 
     for (const service of services) {
         const queryParams = servicesConfig[service.code]?.queryParams;
-        
-        console.log({
-            code: service.code,
-            queryParams,  
-        });
-        
+
         if (!queryParams) {
             console.error(`Needs queryParams for ${service.code}`)
             continue
@@ -60,18 +55,27 @@ const cronJob = async (servicesForJob) => {
             
             const stop = Date.now();
 
-            const isValidResponse = (servicesConfig[currentExecService.code].keysInResponse || []).every(key => response.data[key])
+            const isValidResponse = (servicesConfig[currentExecService.code].keysInResponse || []).every(key =>  response.data[key] !== undefined)
 
             statusData.status = isValidResponse ? 'ok' : 'failed'
             statusData.responseTime = (stop - start) / 1000
 
         } catch (error) {
             console.log("============\n", currentExecService.code, {
-                error
+                error: error.message
             }, "============\n")
         }
 
-        await adminApi.execPostService(apiConfig.statusPath,statusData);
+        try {
+            const response = await adminApi.execPostService(apiConfig.statusPath,statusData);
+            console.log({response})
+
+        } catch (error) {
+            console.log({
+                error: error
+            })
+        }
+        
     }
 
     console.log("END STATUS")

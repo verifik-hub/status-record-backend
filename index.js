@@ -13,7 +13,7 @@ clientApi.listServices().then(async (services) => {
     const timesForServices = {}
 
     for (const service of services) {
-        const queryParams = servicesConfig[service.code]?.queryParams;
+        const queryParams = servicesConfig[service.code] ?.queryParams;
 
         if (!queryParams) {
             console.error(`Needs queryParams for ${service.code}`)
@@ -52,31 +52,34 @@ const cronJob = async (servicesForJob) => {
             const start = Date.now();
 
             const response = await clientApi.execServiceWithQueryparams(currentExecService, queryParams)
-            
+
             const stop = Date.now();
 
-            const isValidResponse = (servicesConfig[currentExecService.code].keysInResponse || []).every(key =>  response.data[key] !== undefined)
+            const isValidResponse = (servicesConfig[currentExecService.code].keysInResponse || []).every(key => response.data[key] !== undefined)
 
             statusData.status = isValidResponse ? 'ok' : 'failed'
             statusData.responseTime = (stop - start) / 1000
 
         } catch (error) {
-            console.log("============\n", currentExecService.code, {
+            console.error("============\n", currentExecService.code, {
                 error: error.message
             }, "============\n")
         }
 
         try {
-            const response = await adminApi.execPostService(apiConfig.statusPath,statusData);
-            console.log({response})
+            const response = await adminApi.execPostService(apiConfig.statusPath, statusData);
+
+            if (response.data.status !== 'ok') {
+                console.error("============\n", {
+                    response
+                }, "============\n")
+            }
 
         } catch (error) {
-            console.log({
+            console.error({
                 error: error
             })
         }
-        
-    }
 
-    console.log("END STATUS")
+    }
 }

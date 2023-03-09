@@ -14,7 +14,7 @@ class verifikLibrary {
 
         const {
             data
-        } = await this.#instanceAxios.get('/v2/app-features?where_group=apiRequest&where_isAvailable=true&sort=code');
+        } = await this.#instanceAxios.get('/v2/app-features?where_group=apiRequest&where_isAvailable=true&sort=code&legacy=false');
 
         return data.data
 

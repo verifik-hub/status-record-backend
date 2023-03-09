@@ -10,6 +10,8 @@ const clientApi = verifikApi.initLibrary(apiConfig.clientToken, apiConfig.url)
 const adminApi = verifikApi.initLibrary(apiConfig.adminToken, apiConfig.url)
 
 clientApi.listServices().then(async (services) => {
+    console.log("Total services: ", services.length)
+
     const timesForServices = {}
 
     for (const service of services) {

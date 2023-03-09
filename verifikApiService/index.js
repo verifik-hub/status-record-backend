@@ -12,11 +12,18 @@ class verifikLibrary {
             throw new Error('Library not started')
         }
 
-        const {
-            data
-        } = await this.#instanceAxios.get('/v2/app-features?where_group=apiRequest&where_isAvailable=true&sort=code&legacy=false');
+        try {
+            const {
+                data
+            } = await this.#instanceAxios.get('/v2/app-features?where_group=apiRequest&where_isAvailable=true&sort=code&wherenot_legacy=true');
+            
+            return data.data
 
-        return data.data
+        } catch (error) {
+            console.error(error)
+        }
+
+        return []
 
     }
 

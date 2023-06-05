@@ -15,7 +15,7 @@ clientApi.listServices().then(async (services) => {
     const timesForServices = {}
 
     for (const service of services) {
-        const queryParams = servicesConfig[service.code] ?.queryParams;
+        const queryParams = servicesConfig[service.code]?.queryParams;
 
         if (!queryParams) {
             console.error(`Needs queryParams for ${service.code}`)
@@ -79,7 +79,8 @@ const cronJob = async (servicesForJob) => {
 
         } catch (error) {
             console.error({
-                error: error
+                data: error.response?.data,
+                error: error.response
             })
         }
 

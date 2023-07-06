@@ -64,7 +64,8 @@ const cronJob = async (servicesForJob) => {
 
         } catch (error) {
             console.error("============\n", currentExecService.code, {
-                error: error.message
+                data: error.response?.data,
+                // message: error.message
             }, "============\n")
         }
 
@@ -80,7 +81,7 @@ const cronJob = async (servicesForJob) => {
         } catch (error) {
             console.error({
                 data: error.response?.data,
-                error: error.response
+                // message: error.message
             })
         }
 

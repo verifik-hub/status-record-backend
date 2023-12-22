@@ -42,7 +42,7 @@ class verifikLibrary {
                 throw new Error(`Invalid value for field ${dependency.field}: ${currentParam}`);
             }
 
-            queryString += `${dependency.field}=${currentParam}&`;
+            queryString += `${dependency.field}=${currentParam}&force=true`;
         }
 
         const {

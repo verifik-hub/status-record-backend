@@ -1,85 +1,81 @@
-const axios = require('axios')
+const axios = require("axios");
 
 class verifikLibrary {
-    #instanceAxios
+	#instanceAxios;
 
-    constructor(instanceAxios) {
-        this.#instanceAxios = instanceAxios;
-      }
+	constructor(instanceAxios) {
+		this.#instanceAxios = instanceAxios;
+	}
 
-    async listServices() {
-        if (!this.#instanceAxios) {
-            throw new Error('Library not started')
-        }
+	async listServices() {
+		if (!this.#instanceAxios) {
+			throw new Error("Library not started");
+		}
 
-        try {
-            const {
-                data
-            } = await this.#instanceAxios.get('/v2/app-features?where_group=apiRequest&where_isAvailable=true&sort=code&wherenot_legacy=true');
-            
-            return data.data
+		try {
+			const { data } = await this.#instanceAxios.get(
+				"/v2/app-features?where_group=apiRequest&where_isAvailable=true&sort=code&wherenot_legacy=true"
+			);
 
-        } catch (error) {
-            console.error(error)
-        }
+			return data.data;
+		} catch (error) {
+			console.error(error);
+		}
 
-        return []
+		return [];
+	}
 
-    }
+	async execServiceWithQueryparams(service, queryParams) {
+		const params = new URLSearchParams(queryParams);
+		let queryString = `/${service.url}?`;
 
-    async execServiceWithQueryparams(service, queryParams) {
-        const params = new URLSearchParams(queryParams);
-        let queryString = `/${service.url}?`;
+		for (const dependency of service.dependencies) {
+			const currentParam = params.get(dependency.field);
 
-        for (const dependency of service.dependencies) {
-            const currentParam = params.get(dependency.field)
+			if (dependency.required && !currentParam) {
+				throw new Error(`Missing required field: ${dependency.field}`);
+			}
 
-            if (dependency.required && !currentParam) {
-                throw new Error(`Missing required field: ${dependency.field}`);
-            }
+			if (dependency.enum && !dependency.enum.includes(currentParam)) {
+				throw new Error(`Invalid value for field ${dependency.field}: ${currentParam}`);
+			}
 
-            if (dependency.enum && !dependency.enum.includes(currentParam)) {
-                throw new Error(`Invalid value for field ${dependency.field}: ${currentParam}`);
-            }
+			queryString += `${dependency.field}=${currentParam}&`;
+		}
 
-            queryString += `${dependency.field}=${currentParam}&force=true`;
-        }
+		queryString += `force=true`;
+		console.log(queryString);
+		const { data } = await this.#instanceAxios.get(queryString);
 
-        const {
-            data
-        } = await this.#instanceAxios.get(queryString);
+		return data;
+	}
 
-        return data;
-    };
+	async execPostService(path, body) {
+		const { data } = await this.#instanceAxios.post(path, body);
 
-    async execPostService(path, body) {
-        const {
-            data
-        } = await this.#instanceAxios.post(path,body);
-
-        return data;
-    };
+		return data;
+	}
 }
 
-const initLibrary = (token, apiUrl = 'https://app.verifik.co') => {
-    if (!token) {
-        throw new Error('Needs token')
-    }
+const initLibrary = (token, apiUrl = "https://app.verifik.co") => {
+	if (!token) {
+		throw new Error("Needs token");
+	}
 
-    if (!apiUrl) {
-        throw new Error('Needs api url')
-    }
+	if (!apiUrl) {
+		throw new Error("Needs api url");
+	}
 
-    const instanceVerifikService = axios.create({
-        baseURL: apiUrl,
-        timeout: 0,
-    });
+	const instanceVerifikService = axios.create({
+		baseURL: apiUrl,
+		timeout: 0,
+	});
 
-    instanceVerifikService.defaults.headers.common['Authorization'] = `JWT ${token}`
+	instanceVerifikService.defaults.headers.common["Authorization"] = `JWT ${token}`;
 
-    return new verifikLibrary(instanceVerifikService)
-}
+	return new verifikLibrary(instanceVerifikService);
+};
 
 module.exports = {
-    initLibrary,
-}
+	initLibrary,
+};

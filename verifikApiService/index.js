@@ -44,7 +44,7 @@ class verifikLibrary {
 		}
 
 		queryString += `force=true`;
-		console.log(queryString);
+
 		const { data } = await this.#instanceAxios.get(queryString);
 
 		return data;

@@ -1,89 +1,95 @@
-const verifikApi = require('./verifikApiService/index')
-const cron = require('node-cron');
+const verifikApi = require("./verifikApiService/index");
+const cron = require("node-cron");
 
-const {
-    api: apiConfig,
-    services: servicesConfig
-} = require("./config")
+const { api: apiConfig, services: servicesConfig } = require("./config");
 
-const clientApi = verifikApi.initLibrary(apiConfig.clientToken, apiConfig.url)
-const adminApi = verifikApi.initLibrary(apiConfig.adminToken, apiConfig.url)
+const clientApi = verifikApi.initLibrary(apiConfig.clientToken, apiConfig.url);
+const adminApi = verifikApi.initLibrary(apiConfig.adminToken, apiConfig.url);
 
-clientApi.listServices().then(async (services) => {
-    console.log("Total services: ", services.length)
+clientApi
+	.listServices()
+	.then(async (services) => {
+		const timesForServices = {};
+		const needsQueryParams = [];
 
-    const timesForServices = {}
+		for (const service of services) {
+			const queryParams = servicesConfig[service.code]?.queryParams;
 
-    for (const service of services) {
-        const queryParams = servicesConfig[service.code]?.queryParams;
+			if (!queryParams) {
+				needsQueryParams.push(service.code);
+				// console.error(`Needs queryParams for ${service.code}`);
+				continue;
+			}
 
-        if (!queryParams) {
-            console.error(`Needs queryParams for ${service.code}`)
-            continue
-        }
+			const currentTime = servicesConfig[service.code].time ?? servicesConfig.timeDefault;
 
-        const currentTime = servicesConfig[service.code].time ?? servicesConfig.timeDefault
+			if (!timesForServices[currentTime]) {
+				timesForServices[currentTime] = [];
+			}
 
-        if (!timesForServices[currentTime]) {
-            timesForServices[currentTime] = []
-        }
+			timesForServices[currentTime].push([service, queryParams]);
+		}
+		console.log(" =================================================== ");
+		console.log("Total services: ", services.length);
 
-        timesForServices[currentTime].push([service, queryParams])
-    }
+		if (needsQueryParams.length) {
+			console.log("Total without params: ", needsQueryParams.length);
+			console.error(needsQueryParams);
+		}
+		console.log(" =================================================== ");
 
-    for (const time in timesForServices) {
-        const serviceForJob = timesForServices[time]
+		for (const time in timesForServices) {
+			const serviceForJob = timesForServices[time];
 
-        cron.schedule(time, () => cronJob(serviceForJob));
-    }
-}).catch(error => {
-    console.log({
-        error
-    })
-})
+			cron.schedule(time, () => cronJob(serviceForJob));
+		}
+	})
+	.catch((error) => {
+		console.log({
+			error,
+		});
+	});
 
 const cronJob = async (servicesForJob) => {
-    for (const [currentExecService, queryParams] of servicesForJob) {
-        const statusData = {
-            code: currentExecService.code,
-            group: currentExecService.group,
-            status: 'failed',
-        }
+	for (const [currentExecService, queryParams] of servicesForJob) {
+		const statusData = {
+			code: currentExecService.code,
+			group: currentExecService.group,
+			status: "failed",
+		};
 
-        try {
-            const start = Date.now();
+		let errorBody = {};
 
-            const response = await clientApi.execServiceWithQueryparams(currentExecService, queryParams)
+		try {
+			const start = Date.now();
 
-            const stop = Date.now();
+			const response = await clientApi.execServiceWithQueryparams(currentExecService, queryParams);
 
-            const isValidResponse = (servicesConfig[currentExecService.code].keysInResponse || []).every(key => response.data[key] !== undefined)
+			const stop = Date.now();
 
-            statusData.status = isValidResponse ? 'ok' : 'failed'
-            statusData.responseTime = (stop - start) / 1000
+			const isValidResponse = (servicesConfig[currentExecService.code].keysInResponse || []).every((key) => response[key] !== undefined);
 
-        } catch (error) {
-            console.error("============\n", currentExecService.code, {
-                data: error.response?.data,
-                // message: error.message
-            }, "============\n")
-        }
+			statusData.status = isValidResponse ? "ok" : "failed";
+			statusData.responseTime = (stop - start) / 1000;
+		} catch (error) {
+			if (error.response) {
+				errorBody = error.response?.data;
+				delete errorBody.signature;
+			}
+		}
 
-        try {
-            const response = await adminApi.execPostService(apiConfig.statusPath, statusData);
+		try {
+			const { data: response } = await adminApi.execPostService(apiConfig.statusPath, statusData);
 
-            if (response.data.status !== 'ok') {
-                console.error("============\n", {
-                    response
-                }, "============\n")
-            }
-
-        } catch (error) {
-            console.error({
-                data: error.response?.data,
-                // message: error.message
-            })
-        }
-
-    }
-}
+			if (response.status !== "ok") {
+				delete response.updatedAt;
+				console.error("========================");
+				console.error(currentExecService.code, "\n", errorBody, "\n", response);
+				console.error("========================\n");
+			}
+		} catch (error) {
+			console.log(error.message);
+			console.error("========================\n", error.response, "\n========================\n");
+		}
+	}
+};

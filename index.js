@@ -67,12 +67,12 @@ const cronJob = async (servicesForJob) => {
 
 			const stop = Date.now();
 
-			const isValidResponse = (servicesConfig[currentExecService.code].keysInResponse || []).every((key) => response[key] !== undefined);
+			const isValidResponse = (servicesConfig[currentExecService.code].keysInResponse || []).every((key) => response.data[key] !== undefined);
 
 			if (!isValidResponse) {
 				errorBody = {
 					requiredKeys: servicesConfig[currentExecService.code].keysInResponse,
-					currentKeys: Object.keys(response),
+					currentKeys: Object.keys(response.data),
 				};
 			}
 

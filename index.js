@@ -73,7 +73,7 @@ const cronJob = async (servicesForJob) => {
 			statusData.responseTime = (stop - start) / 1000;
 		} catch (error) {
 			if (error.response) {
-				errorBody = error.response?.data;
+				errorBody = error.response?.data || error.message;
 				delete errorBody.signature;
 			}
 		}

@@ -53,11 +53,11 @@ clientApi
 const cronJob = async (servicesForJob) => {
 	for (const [currentExecService, queryParams] of servicesForJob) {
 		const statusData = {
+			name: currentExecService.name,
 			code: currentExecService.code,
 			group: currentExecService.group,
 			status: "failed",
 		};
-
 		let errorBody = {};
 
 		try {

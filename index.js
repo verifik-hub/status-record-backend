@@ -5,11 +5,11 @@ const axios = require("axios");
 const db = async () => {
 	const services = {};
 	const tokens = await axios.get(
-		"http://localhost:3001/v2/status-record/endpoints/token"
+		"https://api.verifik.co/v2/status-record/endpoints/token"
 	);
 
 	const { data } = await axios.get(
-		"http://localhost:3001/v2/status-record/endpoints",
+		"https://api.verifik.co/v2/status-record/endpoints",
 		{
 			headers: { Authorization: `Bearer ${tokens.data.adminToken}` },
 		}
@@ -49,8 +49,6 @@ db().then((data) => {
 				const currentTime =
 					servicesConfig[service.code].time ?? servicesConfig.timeDefault;
 
-				console.log(currentTime);
-
 				if (!timesForServices[currentTime]) {
 					timesForServices[currentTime] = [];
 				}
@@ -68,9 +66,8 @@ db().then((data) => {
 
 			for (const time in timesForServices) {
 				const serviceForJob = timesForServices[time];
-				console.log({ time });
+
 				cron.schedule(time, () => cronJob(serviceForJob));
-				console.log("Ejecutando tarea cada 2 minutos");
 			}
 		})
 		.catch((error) => {

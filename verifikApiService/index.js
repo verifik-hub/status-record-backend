@@ -37,7 +37,9 @@ class verifikLibrary {
 			}
 
 			if (dependency.enum && !dependency.enum.includes(currentParam)) {
-				throw new Error(`Invalid value for field ${dependency.field}: ${currentParam}`);
+				throw new Error(
+					`Invalid value for field ${dependency.field}: ${currentParam}`
+				);
 			}
 
 			queryString += `${dependency.field}=${currentParam}&`;
@@ -71,7 +73,9 @@ const initLibrary = (token, apiUrl = "https://app.verifik.co") => {
 		timeout: 0,
 	});
 
-	instanceVerifikService.defaults.headers.common["Authorization"] = `JWT ${token}`;
+	instanceVerifikService.defaults.headers.common[
+		"Authorization"
+	] = `JWT ${token}`;
 
 	return new verifikLibrary(instanceVerifikService);
 };

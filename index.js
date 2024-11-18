@@ -2,10 +2,12 @@ const verifikApi = require("./verifikApiService/index");
 const cron = require("node-cron");
 const axios = require("axios");
 
+const { password } = require("./config");
+
 const db = async () => {
 	const services = {};
 	const tokens = await axios.get(
-		"https://api.verifik.co/v2/status-record/endpoints/token?password=65e23c12d5236d37fa5670d3"
+		`https://api.verifik.co/v2/status-record/endpoints/token?password=${password}`
 	);
 
 	const { data } = await axios.get(

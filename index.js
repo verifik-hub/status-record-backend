@@ -5,7 +5,7 @@ const axios = require("axios");
 const db = async () => {
 	const services = {};
 	const tokens = await axios.get(
-		"https://api.verifik.co/v2/status-record/endpoints/token"
+		"https://api.verifik.co/v2/status-record/endpoints/token?password=65e23c12d5236d37fa5670d3"
 	);
 
 	const { data } = await axios.get(

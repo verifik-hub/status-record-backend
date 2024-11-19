@@ -59,7 +59,15 @@ class verifikLibrary {
 	}
 }
 
+let callCount = 0;
+let tokenListo;
 const initLibrary = (token, apiUrl = "https://app.verifik.co") => {
+	callCount++;
+
+	if (callCount === 1) {
+		tokenListo = token;
+	}
+
 	if (!token) {
 		throw new Error("Needs token");
 	}
@@ -75,7 +83,7 @@ const initLibrary = (token, apiUrl = "https://app.verifik.co") => {
 
 	instanceVerifikService.defaults.headers.common[
 		"Authorization"
-	] = `JWT ${token}`;
+	] = `JWT ${tokenListo}`;
 
 	return new verifikLibrary(instanceVerifikService);
 };

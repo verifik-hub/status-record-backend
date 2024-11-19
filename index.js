@@ -13,7 +13,9 @@ const db = async () => {
 	const { data } = await axios.get(
 		"https://api.verifik.co/v2/status-record/endpoints",
 		{
-			headers: { Authorization: `Bearer ${tokens.data.adminToken}` },
+			headers: {
+				Authorization: `Bearer ${tokens.data.clientToken}`,
+			},
 		}
 	);
 
@@ -30,9 +32,11 @@ const db = async () => {
 db().then((data) => {
 	const { api: apiConfig, services: servicesConfig } = data;
 
-	const clientApi = verifikApi.initLibrary(apiConfig.adminToken, apiConfig.url);
+	const clientApi = verifikApi.initLibrary(
+		apiConfig.clientToken,
+		apiConfig.url
+	);
 	const adminApi = verifikApi.initLibrary(apiConfig.adminToken, apiConfig.url);
-
 	clientApi
 		.listServices()
 		.then(async (services) => {
